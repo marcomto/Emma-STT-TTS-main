@@ -3,7 +3,6 @@ Memory management and context building for conversation history.
 """
 import json
 import numpy as np
-import threading
 from constants import SESSION_ID
 from settings import runtime
 from load_config import cfg

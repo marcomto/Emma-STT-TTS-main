@@ -2,7 +2,6 @@
 Audio processing utilities for transcription and voice recognition.
 """
 import numpy as np
-from faster_whisper import WhisperModel
 from load_config import cfg
 
 

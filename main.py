@@ -1,5 +1,4 @@
 import requests
-import json
 from random import randrange
 import pyaudio
 import threading
@@ -7,7 +6,7 @@ import time
 import sqlite3
 import numpy as np
 import atexit
-from constants import EMBED_MODEL, LIBRARY, MAX_FRAMES, SESSION_ID, SILENCE_THRESHOLD, SUMMARY_LIMIT, VOICE_THRESHOLD
+from constants import LIBRARY, MAX_FRAMES, SESSION_ID, SILENCE_THRESHOLD, SUMMARY_LIMIT, VOICE_THRESHOLD
 from engine import TTS
 import db_manager
 from db_manager import ensure_connection, commit, close_all_connections
@@ -21,14 +20,13 @@ from settings import runtime
 from load_config import cfg
 
 # Import moduli separati
-from db_queries import add_message, get_recent_messages, get_full_messages, get_all_summaries, get_message_count
 from ollama_client import call_ollama as call_ollama_api, embed_text as embed_text_api, web_search as web_search_api
 
 # Import audio processing
 from audio_processing import transcribe_audio
 
 # Import memory management
-from memory import build_context, vector_search
+from memory import build_context
 
 # -----------------------------
 # CONFIG
