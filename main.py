@@ -13,17 +13,22 @@ import db_manager
 from db_manager import ensure_connection, commit, close_all_connections
 from queue import Queue, Empty
 from faster_whisper import WhisperModel
-from utils import clean_markdown, remove_emojis, truncate
+from utils import clean_markdown, remove_emojis, truncate, adaptive_memory_tuning
 from utils import Colors
 import audioop
 import keyboard
-import ollama
 from settings import runtime
 from load_config import cfg
 
 # Import moduli separati
 from db_queries import add_message, get_recent_messages, get_full_messages, get_all_summaries, get_message_count
 from ollama_client import call_ollama as call_ollama_api, embed_text as embed_text_api, web_search as web_search_api
+
+# Import audio processing
+from audio_processing import transcribe_audio
+
+# Import memory management
+from memory import build_context, vector_search
 
 # -----------------------------
 # CONFIG
@@ -72,26 +77,7 @@ piper_model = cfg.get("piper_model")
 tts = TTS(piper_model, pa_instance=pa_condiviso) 
 session = requests.Session()
 
-def transcribe_audio(frames):
-
-    audio_bytes = b"".join(frames)
-
-    audio = np.frombuffer(
-        audio_bytes,
-        np.int16
-    ).astype(np.float32)
-
-    audio /= 32768.0
-
-    segments, info = whisper_model.transcribe(
-        audio,
-        language=cfg.get("user_lang"),
-        vad_filter=True
-    )
-
-    text = "".join(segment.text for segment in segments)
-
-    return text.lower().strip()
+# -------- UTILITY VARIABLES --------
 # -----------------------------
 # SPEAKTEXT (Aggiornata senza STATE)
 # -----------------------------
@@ -195,49 +181,6 @@ def memory_worker(batch_size=1, poll_interval=0.5):
         except Exception as e:
             print(f"{Colors.ERROR}[memory_worker ERROR] {e}")
             time.sleep(poll_interval)
-
-# -----------------------------
-# VECTOR CACHE
-# -----------------------------        
-def _load_vector_cache(session_id=SESSION_ID, limit=runtime.max_vectors_per_session):
-    """
-    Carica in cache i vettori più recenti per session_id, fino a `limit`.  
-    Ritorna {"M": np.ndarray, "contents": [str,...]}.
-    Se già presente in cache, restituisce immediatamente.
-    """
-    with VECTOR_CACHE_LOCK:
-        entry = VECTOR_CACHE.get(session_id)
-        if entry:
-            return entry
-
-    # Carica dal DB solo se non in cache
-    conn, cur = ensure_connection()
-    # recupero embedding; assumo che embedding sia salvato come BLOB
-    cur.execute(
-        "SELECT content, embedding FROM memory_vectors WHERE session_id=? ORDER BY id DESC LIMIT ?",
-        (session_id, limit)
-    )
-    rows = cur.fetchall()  # con row_factory = sqlite3.Row
-
-    contents, mats = [], []
-    for row in rows:
-        content = row["content"]
-        blob = row["embedding"]
-        if blob:
-            vec = np.frombuffer(blob, dtype=np.float32)
-            mats.append(vec)
-            contents.append(content)
-
-    if mats:
-        M = np.vstack(mats)  # ogni riga normalizzata già
-    else:
-        M = np.zeros((0, 1), dtype=np.float32)
-
-    new_entry = {"M": M, "contents": contents}
-    with VECTOR_CACHE_LOCK:
-        VECTOR_CACHE[session_id] = new_entry
-
-    return new_entry
     
 def add_message(role, content, session_id=SESSION_ID):
     """Wrapper che chiama il modulo db_queries."""
@@ -310,29 +253,6 @@ def embed_text(text):
     return embed_text_api(session, text)
 
 
-def vector_search(query, k=5, session_id=SESSION_ID):
-    q_emb = embed_text(query)
-    if not q_emb:
-        return []
-
-    cache = _load_vector_cache(session_id)
-    M = cache["M"]
-    if M.shape[0] == 0:
-        return []
-
-    q = np.array(q_emb, dtype=np.float32)
-    q /= (np.linalg.norm(q) + 1e-9)
-
-    sims = M @ q  # dot products
-    if k >= len(sims):
-        idx = np.argsort(-sims)
-    else:
-        idx = np.argpartition(-sims, k)[:k]
-        idx = idx[np.argsort(-sims[idx])]
-
-    return [cache["contents"][int(i)] for i in idx]
-
-
 # -----------------------------
 # BACKGROUND SUMMARIZER
 # -----------------------------
@@ -399,115 +319,7 @@ def summarizer_worker(interval_sec=30):
         finally:
             time.sleep(interval_sec)
 
-# -----------------------------
-# CONTEXT BUILDER
-# -----------------------------
-def build_context(session_id=SESSION_ID, query=None):
-    """
-    Return a list[ {role, content}, ... ] suitable for Ollama chat.
-    Includes: system identity, summaries (single system msg), important facts,
-    recent messages (troncati per token), optional vector facts, and the user query.
-    Troncamento automatico del contesto per evitare prompt troppo lunghi.
-    """
-    messages = []
 
-    # Parametri di controllo (aggiusta se necessario)
-    MAX_CONTEXT_TOKENS = 1200       # limite stimato di "token" (approx = parole) per il prompt totale
-    RESERVED_FOR_RESPONSE = 150     # lascia spazio per la risposta del modello
-    SYSTEM_RESERVE = 300            # riserva minima di token per system messages (identità + summaries/facts)
-    # Nota: questi valori sono empirici; aumentali se usi modelli più grandi.
-
-    # helper: stima "token" approssimativa basata sulle parole
-    def token_estimate(text: str) -> int:
-        if not text:
-            return 0
-        return len(text.split())
-
-    # 0) Fixed identities (sempre presenti) - manteniamo ma li limitiamo
-    identity_message = f"{cfg.get("identity_llm", "Important note: I am Emma-Zira")}{cfg.get("identity_user", "You are Marco.")}"
-    identity_message = truncate(identity_message, limit=1000)  # non troppo lunga
-    messages.append({"role": "system", "content": identity_message})
-
-    # inizializza contatore token con system identity
-    total_tokens = token_estimate(identity_message)
-
-    # 1) Summaries -> single system message (inserisco ma tronco)
-    summaries = get_all_summaries(session_id)
-    if summaries:
-        joined = "\n".join(summaries)
-        summ_text = cfg.get("prev_summ") + joined
-        # tronca summaries più lunghe
-        summ_text_trunc = truncate(summ_text, limit=4000)
-        messages.append({"role": "system", "content": summ_text_trunc})
-        total_tokens += token_estimate(summ_text_trunc)
-
-    # => se system messages già molto grandi, limitiamo ulteriormente il totale
-    # calcoliamo il token budget rimanente per recent messages + vector facts + query
-    max_allowed = MAX_CONTEXT_TOKENS - RESERVED_FOR_RESPONSE
-    if max_allowed < SYSTEM_RESERVE:
-        # garanzia minima
-        max_allowed = MAX_CONTEXT_TOKENS - RESERVED_FOR_RESPONSE
-
-    remaining_budget = max_allowed - total_tokens
-    if remaining_budget < 0:
-        remaining_budget = 0
-
-    # 3) Recent verbatim messages: prendi gli ultimi e inseriscili finché c'è budget
-    recent = get_recent_messages(session_id=session_id, limit=runtime.history_limit * 3)  # prendi un poco più di history in caso
-    # processa in reverse per raccogliere gli ultimi messaggi fino al budget
-    selected_recent = []
-    for msg in reversed(recent):  # partiamo dagli ultimi (più recenti)
-        content = truncate(msg["content"], limit=1200)  # tronca singolo messaggio se troppo lungo
-        est = token_estimate(content)
-        if est <= remaining_budget and remaining_budget > 0:
-            selected_recent.insert(0, {"role": msg["role"], "content": content})
-            remaining_budget -= est
-        else:
-            # se non c'è spazio per l'intero messaggio, proviamo a inserire una versione più corta
-            if remaining_budget > 10:
-                # prova a inserire un frammento che si adatti
-                words = content.split()
-                take = max(5, remaining_budget)  # almeno qualche parola
-                frag = " ".join(words[-take:])  # prendi la parte finale (più rilevante)
-                selected_recent.insert(0, {"role": msg["role"], "content": frag + "..."})
-                remaining_budget = 0
-            break
-
-    # aggiungi selected_recent in ordine cronologico corretto
-    messages.extend(selected_recent)
-    total_tokens += token_estimate(" ".join(m["content"] for m in selected_recent))
-
-    # 4) Vector facts per questa query (opzionale) - aggiungi solo se c'è spazio
-    if query and remaining_budget > 20:
-        facts = vector_search(query, k=5, session_id=session_id)
-        if facts:
-            facts_content = cfg.get("relev_mem_info", "Relevant information from memory:") + "\n" + "\n".join(facts)
-            facts_content_trunc = truncate(facts_content, limit=1000)
-            est = token_estimate(facts_content_trunc)
-            if est <= remaining_budget:
-                messages.append({"role": "system", "content": facts_content_trunc})
-                remaining_budget -= est
-            else:
-                # se non c'è spazio, ignora i vector facts (sono opzionali)
-                pass
-
-    # 5) Infine aggiungi la query utente come ultimo messaggio (sempre)
-    if query:
-        user_query = truncate(query, limit=1000)
-        messages.append({"role": "user", "content": user_query})
-        total_tokens += token_estimate(user_query)
-
-    # DEBUG: se abbiamo troncato qualcosa, loggalo
-    try:
-        data = json.dumps(messages, ensure_ascii=False)
-
-        # mostra la dimensione in caratteri e stima token
-        if len(data) > 1000 or total_tokens > (MAX_CONTEXT_TOKENS * 0.8):
-            print(f"[DEBUG][build_context]: total_tokens_est={total_tokens}, json_len={len(data)}")
-    except Exception as e:
-        print(f"{Colors.ERROR}[ERROR] {cfg.get("payload_err", "Payload error")} {e}")
-
-    return messages
 
 # -----------------------------
 # COMMAND HELPERS
@@ -530,7 +342,10 @@ def runCommands(cmd, text):
             FACT_QUEUE.put(("user", user_text, SESSION_ID))
 
         # Altrimenti, trattalo come input normale a Ollama
-        history = build_context(session_id=SESSION_ID, query=user_text)
+        history = build_context(session_id=SESSION_ID, query=user_text, 
+                               embed_text_func=embed_text, 
+                               vector_cache=VECTOR_CACHE, 
+                               vector_cache_lock=VECTOR_CACHE_LOCK)
         response = call_ollama(history)
         assistant_text = response.get("content", "").strip()
 
@@ -565,36 +380,6 @@ def runCommands(cmd, text):
                 print(f"{Colors.ASSISTANT}Assistant: {assistant_text}{Colors.RESET}")
                 SpeakText(assistant_text, show_prompt=True)
 
-            
-def adaptive_memory_tuning(total_turns: int):
-    """
-    Adatta automaticamente la memoria del sistema in base alla durata della sessione.
-    total_turns = numero totale di messaggi utente finora (es. count nella tabella messages)
-    """
-    # Livello 1️⃣ - Sessione breve
-    if total_turns < 10:
-        runtime.history_limit = 20
-        runtime.max_summaries = 5
-        runtime.max_vectors_per_session = 100
-
-    # Livello 2️⃣ - Sessione media
-    elif total_turns < 30:
-        runtime.history_limit = 30
-        runtime.max_summaries = 10
-        runtime.max_vectors_per_session = 200
-
-    # Livello 3️⃣ - Sessione lunga
-    elif total_turns < 60:
-        runtime.history_limit = 40
-        runtime.max_summaries = 15
-        runtime.max_vectors_per_session = 300
-        
-    # Livello 4️⃣ - Sessione lunghissima (dialoghi di ore)
-    else:
-        runtime.history_limit = 25   # accorcia per ridurre il rumore
-        runtime.max_summaries = 20
-        runtime.max_vectors_per_session = 400
-
 # Wrapper per web_search che passa session
 def web_search(mysearch):
     """Wrapper per ollama_client.web_search che usa la session globale."""
@@ -607,7 +392,7 @@ def web_search(mysearch):
 def assistant_loop():
 
     total_turns = get_message_count(SESSION_ID)
-    adaptive_memory_tuning(total_turns)
+    adaptive_memory_tuning(total_turns, runtime)
 
     print(
         f"{Colors.ASSISTANT}Assistant: "
@@ -665,7 +450,7 @@ def assistant_loop():
                 # fine frase
                 if time.time() - last_audio_time > SILENCE_THRESHOLD:
 
-                    final_text = transcribe_audio(audio_frames)
+                    final_text = transcribe_audio(audio_frames, whisper_model)
 
                     audio_frames.clear()
                     speech_started = False
@@ -737,7 +522,10 @@ def assistant_loop():
                     # -----------------------------
                     # COSTRUZIONE CONTESTO
                     # -----------------------------
-                    context_messages = build_context(session_id=SESSION_ID, query=final_text)
+                    context_messages = build_context(session_id=SESSION_ID, query=final_text,
+                                                    embed_text_func=embed_text,
+                                                    vector_cache=VECTOR_CACHE,
+                                                    vector_cache_lock=VECTOR_CACHE_LOCK)
 
                     # -----------------------------
                     # OLLAMA

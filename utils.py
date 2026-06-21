@@ -40,3 +40,36 @@ class Colors:
     ASSISTANT = '\033[92m'
     ERROR = '\033[91m'
     RESET = '\033[0m'
+
+
+def adaptive_memory_tuning(total_turns: int, runtime):
+    """
+    Automatically tune system memory parameters based on session duration.
+    
+    Args:
+        total_turns: Total number of user messages so far
+        runtime: RuntimeState instance from settings module
+    """
+    # Level 1️⃣ - Short session
+    if total_turns < 10:
+        runtime.history_limit = 20
+        runtime.max_summaries = 5
+        runtime.max_vectors_per_session = 100
+
+    # Level 2️⃣ - Medium session
+    elif total_turns < 30:
+        runtime.history_limit = 30
+        runtime.max_summaries = 10
+        runtime.max_vectors_per_session = 200
+
+    # Level 3️⃣ - Long session
+    elif total_turns < 60:
+        runtime.history_limit = 40
+        runtime.max_summaries = 15
+        runtime.max_vectors_per_session = 300
+        
+    # Level 4️⃣ - Very long session (hour-long conversations)
+    else:
+        runtime.history_limit = 25   # shorten to reduce noise
+        runtime.max_summaries = 20
+        runtime.max_vectors_per_session = 400
