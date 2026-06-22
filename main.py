@@ -28,6 +28,8 @@ from audio_processing import transcribe_audio
 # Import memory management
 from memory import build_context
 
+# Import SearXNG manager
+from searx_manager import start_searxng, stop_searxng
 # -----------------------------
 # CONFIG
 # -----------------------------
@@ -230,6 +232,12 @@ def cleanup():
     try:
         tts.close()
         pa_condiviso.terminate()
+    except Exception:
+        pass
+
+    try:
+        # chiude SearXNG
+        stop_searxng()
     except Exception:
         pass
 
@@ -564,6 +572,9 @@ if __name__ == "__main__":
     threading.Thread(target=memory_worker, daemon=True).start()
     
     try:
+        #avvio di SearXNG
+        start_searxng()
+
         assistant_loop()
     except KeyboardInterrupt:
         print(cfg.get("llm_stopped", "Assistant terminated."))
