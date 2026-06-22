@@ -6,7 +6,7 @@ import json
 import time
 import requests
 from utils import Colors
-from constants import EMBED_MODEL, LIBRARY
+from constants import EMBED_MODEL, LIBRARY, MAX_RESULTS
 from load_config import cfg
 import ollama
 
@@ -113,21 +113,32 @@ def web_search(session, query):
     Returns:
         str risposta sintetizzata
     """
-    API_KEY = cfg.get("ollama_web_key")
+    # API_KEY = cfg.get("ollama_web_key")
 
     # 1) ricerca web Ollama
+    """     r = session.post(
+            "https://ollama.com/api/web_search",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "query": query,
+                "max_results": MAX_RESULTS
+            },
+            timeout=20
+        ) """
+    
     r = session.post(
-        "https://ollama.com/api/web_search",
-        headers={
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "query": query,
-            "max_results": 5
+        "http://localhost:8888/search",
+        params={
+            "q": query,
+            "format": "json",
+            "lang": cfg.get("search_lang", "en-US"),
+             "categories": "general"
         },
         timeout=20
-    )
+    )    
     
     r.raise_for_status()
     data = r.json()
@@ -135,7 +146,7 @@ def web_search(session, query):
     # 2) prepara contesto
     context = "\n\n".join(
         f"{x['title']}\n{x['content'][:1500]}"
-        for x in data["results"]
+        for x in data.get("results", [])[:MAX_RESULTS]
     )
 
     # 3) Qwen3 sintetizza

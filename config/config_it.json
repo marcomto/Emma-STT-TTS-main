@@ -57,5 +57,6 @@
   "voice_err": "Errore impostazione voce",
   "start_word_err": "Avvertimento: impossibile connettere started-word",
   "esc_pressed": "Voce interrotta manualmente (ESC premuto).",
-  "start_err": "Errore in start()"    
+  "start_err": "Errore in start()",
+  "search_lang": "it-IT"   
 }

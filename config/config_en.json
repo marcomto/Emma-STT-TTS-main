@@ -57,5 +57,6 @@
   "voice_err": "Voice setting error",
   "start_word_err": "Warning: Unable to connect started-word",
   "esc_pressed": "Voice interrupted manually (ESC pressed).",
-  "start_err": "Error in start()"      
+  "start_err": "Error in start()",
+  "search_lang": "en-US"       
 }
