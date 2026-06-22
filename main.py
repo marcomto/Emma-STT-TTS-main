@@ -523,12 +523,6 @@ def assistant_loop():
                         continue
 
                     # -----------------------------
-                    # SALVA MESSAGGIO UTENTE
-                    # -----------------------------
-                    add_message("user", final_text, SESSION_ID)
-                    FACT_QUEUE.put(("user", final_text, SESSION_ID))
-
-                    # -----------------------------
                     # COSTRUZIONE CONTESTO
                     # -----------------------------
                     context_messages = build_context(session_id=SESSION_ID, query=final_text,
@@ -551,10 +545,13 @@ def assistant_loop():
                     )
 
                     # -----------------------------
-                    # SALVA RISPOSTA prima del TTS
+                    # SALVA MESSAGGIO UTENTE E RISPOSTA prima del TTS
                     # -----------------------------
                     if assistant_text.strip():
 
+                        add_message("user", final_text, SESSION_ID)
+                        FACT_QUEUE.put(("user", final_text, SESSION_ID))
+                        
                         add_message("assistant", assistant_text, SESSION_ID)
                         FACT_QUEUE.put(("assistant", assistant_text, SESSION_ID))
                         SpeakText(assistant_text)
