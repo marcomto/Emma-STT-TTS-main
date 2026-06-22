@@ -366,14 +366,17 @@ def runCommands(cmd, text):
         if user_text:
             # Salva solo la richiesta web
             add_message("user", "[WEB SEARCH] " + user_text, SESSION_ID)            
+            FACT_QUEUE.put(("user", "[WEB SEARCH] " + user_text, SESSION_ID)) 
+
             assistant_text = web_search(user_text)    
-        
+
             if assistant_text:
                 assistant_text = clean_markdown(assistant_text)
                 assistant_text = remove_emojis(assistant_text)  
                 web_summary = truncate(assistant_text, 350)
                 
-                add_message("assistant", "[WEB SUMMARY] " + web_summary, SESSION_ID) 
+                add_message("assistant", "[WEB SUMMARY] " + web_summary, SESSION_ID)
+                FACT_QUEUE.put(("assistant", "[WEB SUMMARY] " + web_summary, SESSION_ID)) 
                 
                 print(f"{Colors.ASSISTANT}Assistant: {assistant_text}{Colors.RESET}")
                 SpeakText(assistant_text, show_prompt=True)
