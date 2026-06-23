@@ -40,14 +40,24 @@ python main.py or python main.py --lang it (for italian)
 python main.py --lang en (for english)
 
 note: you can create your own languages by creating a new config/config_xx.json
+in case you get a cuda dll error add a variable to path like this:
+C:\Users\[your_user]\AppData\Local\Programs\Python\Python313\Lib\site-packages\nvidia\cublas\bin
 ```
-voice commands:
+voice commands in English:
 ```
 hello (activation word)
 command exit (exits the program)
 command type (write on keyboard insted of speaking)
 command search (search the web **only by keyboard**)
 
+```
+voice commands in Italian:
+
+```
+ciao (activation word)
+comando esci (exits the program)
+comando scrivi (write on keyboard insted of speaking)
+comando cerca (search the web **only by keyboard**)
 
 ---
 
