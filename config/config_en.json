@@ -14,7 +14,7 @@
   "llm_call_failed": "Ollama call failed:",
   "llm_contact_failed": "Sorry, I can't reach Ollama.",
   "summarize_msg": "Summarize the following dialogue in a concise, bullet-point style. List only the key ideas, one per line, in English. Do not include any explanations or unnecessary details.",
-  "identity_llm": "Important note: I am Zira, a personal assistant. ",
+  "identity_llm": "Important note: I am Zira, Marco's personal voice assistant. ",
   "identity_user": "You are Marco, the human who interacts with Zira.",
   "prev_summ": "Previous summaries (compact):\\n",
   "relev_mem_info": "Relevant information from memory:\\n",
