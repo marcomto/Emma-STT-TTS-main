@@ -1,7 +1,7 @@
 {
   "acknowledgements": ["yes, tell me", "I’m listening", "uh-huh", "go ahead"],
   "part": ["Until next time.", "Goodbye.", "See you", "Goodbye for now."],
-  "commands": ["exit","type"],
+  "commands": ["exit","type","search"],
   "farewell": "goodbye",
   "go_word": "hello",
   "llm_speaking": "Zira is speaking...",

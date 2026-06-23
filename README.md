@@ -1,19 +1,81 @@
-This is an application that allows you to interact with Ollama LLMs using your voice and have the response read aloud.
+# 🚀 Emma - Bilingual Voice Personal Assistant
 
-Here is a video demo using PNGTuber+ to provide an animated assistant of sorts:
-
-https://github.com/user-attachments/assets/5a75a95e-7b86-42f1-9b43-4d89a18560b7
+Emma is a voice-driven personal assistant that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can execute keyboard inputs and perform web searches via voice commands. Web searches can be handled either through Ollama web search or by integrating a local search engine like SearX.
 
 
-INSTALLATION:
+---
 
-1. python -m pip install -r requirements.txt
-2. Install vosk (optional, details here: https://pypi.org/project/SpeechRecognition/)
+## 🛠️ Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+* **A microphone**
+* **Python** (version = 3.13.7)
+* **Ollama** (with llama3.1:8b installed)
+* **Piper** (with piper voices, default is C:\piper, C:\piper\voices with valid *.onnx e *.json voice files. See the configuration files in config folder for the languaged used)
+* **SearX** installed on your local machine (if you want the web search)
+
+## 📦 Installation
+
+Follow these steps to set up the development environment locally:
+
+1. Clone the repository to your local machine:
+   ```bash
+   git clone https://github.com
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd EMMA-STT-TTS-MAIN
+   ```
+3. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## 💻 Usage
+
+To run the application in development mode, execute the following command:
+
+```bash
+python main.py or python main.py --lang it (for italian)
+python main.py --lang en (for englih)
+
+note: you can create your own languages by creating a new config/config_xx.json
+```
+voice commands:
+```
+hello (activation word)
+command exit (exits the program)
+command type (write on keyboard insted of speaking)
+command search (search phrase on keyboard instead of speaking)
 
 
-USAGE:
+---
 
-1. Run ollama application locally
-2. Change value of URL variable to your endpoint (likely not needed.)
-3. Define the model you wish to use in OllamaSpeech.py
-4. 'python OllamaSpeech.py'
+## 🤝 Contributing & Support
+
+Thank you for your interest in this project! Before opening an issue or a pull request, please keep the following in mind:
+
+* **No Formal Support:** This project is maintained in my spare time. I do not offer any technical support, troubleshooting, or installation assistance.
+* **Limited Responses:** I look at issues and pull requests, but I will respond and follow up **only if and when I have the time and capacity to do so**.
+* **Pull Requests:** Contributions that fix bugs or improve the project are always welcome, but please note that review times may vary depending on my availability.
+
+Thank you for your understanding and for respecting the time put into open-source development!
+
+---
+
+## 📄 License
+
+This project is licensed under the terms of the **GNU General Public License v3.0 (GPL-3.0)**.
+
+### What this means for anyone using or modifying this code:
+* **Attribution**: Anyone using or modifying this software must include the original copyright notice and credit the author.
+* **ShareAlike (Copyleft)**: If someone modifies this code or integrates it into a new software, the resulting project **must** be distributed publicly under the same GPL-3.0 license (remaining open source forever). It cannot be included in closed-source proprietary software.
+
+For more details, please see the full license at https://opensource.org/license/gpl-3.0
+
+---
+
+## 👤 Author
+
+* **Marco Mazzetto** - [marcomto@github.com]
+* Email: marcomto.mm@gmail.com
