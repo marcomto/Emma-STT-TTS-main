@@ -113,7 +113,7 @@ def web_search(session, query):
     Returns:
         str risposta sintetizzata
     """
-    # API_KEY = cfg.get("ollama_web_key")
+    # API_KEY = os.getenv("OLLAMA_WEB_SEARCH_KEY")
 
     # 1) ricerca web Ollama
     """     r = session.post(
