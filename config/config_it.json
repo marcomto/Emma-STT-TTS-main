@@ -1,5 +1,4 @@
 {
-  "vosk_model": "vosk-model-it-0.22",
   "acknowledgements": ["Va avanti.", "Sto ascoltando.", "uh-huh", "Sicuro, va avanti"],
   "part": ["Alla prossima.", "Arrivederci.", "Ci vediamo", "Arrivederci per ora."],
   "commands": ["esci","scrivi","cerca"],  
@@ -50,7 +49,6 @@
   "database": "memory.db",
   "commit_failed": "Commit fallito",
   "db_init_fail": "Inizializzazione database fallita",
-  "tts_voice": "Microsoft Elsa Desktop - Italian (Italy)",
   "esc_error": "Errore nella gestione del tasto ESC",
   "esc_not_reg": "Impossibile registrare hotkey ESC",
   "esc_mod_disabled": "Modulo 'keyboard' non disponibile: funzione ESC non abilitata.",

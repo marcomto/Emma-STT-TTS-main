@@ -1,5 +1,4 @@
 {
-  "vosk_model": "vosk-model-en-us-0.22",
   "acknowledgements": ["yes, tell me", "I’m listening", "uh-huh", "go ahead"],
   "part": ["Until next time.", "Goodbye.", "See you", "Goodbye for now."],
   "commands": ["exit","type"],
@@ -50,7 +49,6 @@
   "database": "memory_english.db",
   "commit_failed": "Commit failed",
   "db_init_fail": "Database initialization failed",
-  "tts_voice": "Microsoft Zira Desktop - English (United States)",
   "esc_error": "Global ESC handler error",
   "esc_not_reg": "Unable to register ESC hotkey",
   "esc_mod_disabled": "Module 'keyboard' not available: ESC function not enabled.",
