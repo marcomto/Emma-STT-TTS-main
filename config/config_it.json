@@ -14,7 +14,7 @@
   "llm_call_failed": "Ollama call failed:",
   "llm_contact_failed": "Scusa, non riesco a contattare Ollama.",
   "summarize_msg": "Riassumi in modo telegrafico il seguente dialogo, elencando solo i concetti chiave, uno per riga, in italiano. Evita qualsiasi spiegazione o dettaglio superfluo.",
-  "identity_llm": "Nota importante: io sono Emma, l'assistente personale di Marco. ",
+  "identity_llm": "Nota importante: io sono Emma, l'assistente vocale personale di Marco. ",
   "identity_user": "Tu sei Marco, l'umano che interagisce con Emma.",
   "prev_summ": "Riassunti precedenti (compatti):\\n",
   "relev_mem_info": "Informazioni rilevanti dalla memoria:\\n",
