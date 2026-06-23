@@ -20,7 +20,7 @@ Follow these steps to set up the development environment locally:
 
 1. Clone the repository to your local machine:
    ```bash
-   git clone https://github.com
+   git clone https://github.com/marcomto/Emma-STT-TTS-main.git
    ```
 2. Navigate to the project directory:
    ```bash
