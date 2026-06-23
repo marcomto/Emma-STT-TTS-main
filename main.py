@@ -19,7 +19,7 @@ import keyboard
 from settings import runtime
 from load_config import cfg
 
-# Import moduli separati
+# Import separate modules
 from ollama_client import call_ollama as call_ollama_api, embed_text as embed_text_api, web_search as web_search_api
 
 # Import audio processing
@@ -41,14 +41,14 @@ STOPPHRASE = cfg.get("farewell")
 VECTOR_CACHE = {} # --- cache ---
 VECTOR_CACHE_LOCK = threading.Lock()
 FACT_QUEUE = Queue()
-# Lock per evitare chiamate TTS sovrapposte
+# Lock to avoid overlapping TTS calls
 tts_lock = threading.Lock()
 
 # -----------------------------
-# EVENT SYNCHRONIZATION (Sostituisce STATE legacy)
+# EVENT SYNCHRONIZATION (Replaces STATE legacy)
 # -----------------------------
-# L'evento controlla il flusso del microfono. 
-# Quando è SET, il loop legge l'audio. Quando è CLEAR, il loop si mette in attesa (zero CPU).
+# This event controls the microphone flow.
+# When set, the loop reads the audio. When clear, the loop waits (zero CPU).
 assistant_speaking = threading.Event()
 
 # -----------------------------
@@ -69,17 +69,17 @@ try:
 except Exception as e:
     print(f"{Colors.ERROR}❌ {cfg.get("mic_not_avail", "Error: Microphone not turned on or unavailable.")}")
     print(f"[ERROR] {cfg.get("err_details", "Details")}: {e}")
-    pa_condiviso.terminate() # Pulisci prima di uscire
-    exit(0)  # termina il programma in modo pulito
+    pa_condiviso.terminate() # Clean up before exiting
+    exit(0)  # terminate the program cleanly
 
-# Inizializzazione Piper TTS usando l'istanza PyAudio condivisa
+# Initialize Piper TTS using the shared PyAudio instance
 piper_model = cfg.get("piper_model")
 tts = TTS(piper_model, pa_instance=pa_condiviso) 
 session = requests.Session()
 
 # -------- UTILITY VARIABLES --------
 # -----------------------------
-# SPEAKTEXT (Aggiornata senza STATE)
+# SPEAKTEXT (Updates without STATE legacy)
 # -----------------------------
 def SpeakText(text: str, show_prompt=True):
 
@@ -131,14 +131,14 @@ def memory_worker(batch_size=1, poll_interval=0.5):
     #from db_manager import ensure_connection
 
     buffer = []
-    session_id = SESSION_ID  # puoi parametrizzare se supporti più sessioni
+    session_id = SESSION_ID  # you can parameterize if you support multiple sessions
 
     while True:
         try:
             try:
                 role, content, sid = FACT_QUEUE.get(timeout=poll_interval)
             except Empty:
-                # se la coda è vuota, verifica se ci sono dati da flushare
+                # if the queue is empty, check if there is data to flush
                 if buffer:
                     conn, cur = ensure_connection()
                     for (sid2, role2, cont2, blob2) in buffer:
@@ -151,7 +151,7 @@ def memory_worker(batch_size=1, poll_interval=0.5):
                     with VECTOR_CACHE_LOCK:
                         if session_id in VECTOR_CACHE:
                             del VECTOR_CACHE[session_id]
-                continue  # torna all'inizio del ciclo
+                continue  # return to the beginning of the loop
 
             emb = embed_text(content)
             if emb:
@@ -162,7 +162,7 @@ def memory_worker(batch_size=1, poll_interval=0.5):
                 blob = vec.astype(np.float32).tobytes()
                 buffer.append((sid, role, content, blob))
 
-            # inserisci in batch se buffer pieno
+            # batch insert if buffer full
             if len(buffer) >= batch_size:
                 conn, cur = ensure_connection()
                 for (sid2, role2, cont2, blob2) in buffer:
@@ -176,7 +176,7 @@ def memory_worker(batch_size=1, poll_interval=0.5):
                     if session_id in VECTOR_CACHE:
                         del VECTOR_CACHE[session_id]
 
-            FACT_QUEUE.task_done()  # ✅ chiamato solo se abbiamo effettivamente estratto un elemento
+            FACT_QUEUE.task_done()  # ✅ called only if we have actually extracted an element
 
         except Exception as e:
             print(f"{Colors.ERROR}[memory_worker ERROR] {e}")
@@ -214,14 +214,14 @@ def get_message_count(session_id):
 # -----------------------------
 # MEMORY HELPERS
 # -----------------------------
-# Wrapper per call_ollama che passa session
+# Wrapper for call_ollama that passes session
 def call_ollama(history):
-    """Wrapper per ollama_client.call_ollama che usa la session globale."""
+    """Wrapper for ollama_client.call_ollama that uses the global session."""
     return call_ollama_api(session, history)
 
 
 def cleanup():
-    """Chiusura sicura di risorse audio e database."""
+    """Securely lock audio resources and databases."""
     try:
         if stream.is_active():
             stream.stop_stream()
@@ -236,7 +236,7 @@ def cleanup():
         pass
 
     try:
-        # chiude SearXNG
+        # closes SearXNG
         stop_searxng()
     except Exception:
         pass
@@ -247,15 +247,15 @@ def cleanup():
     except Exception:
         pass
 
-# 🔹 registra la funzione di cleanup per ogni tipo di uscita
+# 🔹 records the cleanup function for each output type
 atexit.register(cleanup)
 
 # -----------------------------
 # VECTOR MEMORY (FACT STORAGE)
 # -----------------------------
-# Wrapper per embed_text che passa session
+# Wrapper for embed_text that passes session
 def embed_text(text):
-    """Wrapper per ollama_client.embed_text che usa la session globale."""
+    """Wrapper for ollama_client.embed_text that uses the global session."""
     return embed_text_api(session, text)
 
 
@@ -343,11 +343,11 @@ def runCommands(cmd, text):
         
         user_text = input(f"✍️ {cfg.get("write_here", "Write here:")} ").strip()
         if user_text:
-            # Salva il testo scritto come messaggio utente
+            # Save the written text as a user message
             add_message("user", user_text, SESSION_ID)
             FACT_QUEUE.put(("user", user_text, SESSION_ID))
 
-        # Altrimenti, trattalo come input normale a Ollama
+        # Otherwise, treat it as normal input to Ollama
         history = build_context(session_id=SESSION_ID, query=user_text, 
                                embed_text_func=embed_text, 
                                vector_cache=VECTOR_CACHE, 
@@ -372,7 +372,7 @@ def runCommands(cmd, text):
         user_text = input(f"✍️ {cfg.get("write_here", "Write here:")} ").strip()
         
         if user_text:
-            # Salva solo la richiesta web
+            # Save web request 
             add_message("user", "[WEB SEARCH] " + user_text, SESSION_ID)            
             FACT_QUEUE.put(("user", "[WEB SEARCH] " + user_text, SESSION_ID)) 
 
@@ -389,9 +389,9 @@ def runCommands(cmd, text):
                 print(f"{Colors.ASSISTANT}Assistant: {assistant_text}{Colors.RESET}")
                 SpeakText(assistant_text, show_prompt=True)
 
-# Wrapper per web_search che passa session
+# Wrapper for web_search that passes session
 def web_search(mysearch):
-    """Wrapper per ollama_client.web_search che usa la session globale."""
+    """Wrapper for ollama_client.web_search that uses the global session."""
     return web_search_api(session, mysearch)
 
 
@@ -423,7 +423,7 @@ def assistant_loop():
 
         while True:
 
-            # Piper sta parlando, non ascoltare ma lasciare lo stream aperto
+            # Piper is speaking, don't listen but leave the stream open
             if assistant_speaking.is_set():
                 time.sleep(0.05)
                 continue
@@ -432,17 +432,17 @@ def assistant_loop():
             audio_level = audioop.rms(data, 2)
 
             # -----------------------------
-            # RILEVAMENTO VOCE
+            # VOICE DETECTION
             # -----------------------------
             if audio_level > VOICE_THRESHOLD:
 
-                # nuova frase, pulisco eventuale residuo precedente
+                # new sentence, I clean up any previous residue
                 if not speech_started:
                     audio_frames.clear()
 
                 speech_started = True
 
-                # salvo anche il primo chunk
+                # I also save the first chunk
                 audio_frames.append(data)
                 if len(audio_frames) > MAX_FRAMES:
                     audio_frames.pop(0)
@@ -451,7 +451,7 @@ def assistant_loop():
 
             elif speech_started:
 
-                # salvo il silenzio finale, utile per Whisper
+                # except for the final silence, useful for Whisper
                 audio_frames.append(data)
                 if len(audio_frames) > MAX_FRAMES:
                     audio_frames.pop(0)
@@ -494,7 +494,7 @@ def assistant_loop():
                         continue
 
                     # -----------------------------
-                    # COMMANDI
+                    # COMMANDS
                     # -----------------------------
                     executed = False
                     normalized = final_text.lower().strip()
@@ -523,7 +523,7 @@ def assistant_loop():
                         continue
 
                     # -----------------------------
-                    # COSTRUZIONE CONTESTO
+                    # CONTEXT CONSTRUCTION
                     # -----------------------------
                     context_messages = build_context(session_id=SESSION_ID, query=final_text,
                                                     embed_text_func=embed_text,
@@ -545,7 +545,7 @@ def assistant_loop():
                     )
 
                     # -----------------------------
-                    # SALVA MESSAGGIO UTENTE E RISPOSTA prima del TTS
+                    # SAVE USER MESSAGE AND RESPONSE before TTS
                     # -----------------------------
                     if assistant_text.strip():
 
@@ -576,4 +576,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(cfg.get("llm_stopped", "Assistant terminated."))
         print(f"\n[INFO] {cfg.get("keyb_interrupt", "Keyboard abort, closing.")}")
-        # il cleanup verrà comunque eseguito automaticamente da atexit
+        # the cleanup will still be performed automatically by atexit

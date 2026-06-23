@@ -3,13 +3,13 @@ import time
 import requests
 
 
-# Variabile globale per conservare il processo WSL avviato
+# Global variable to store the started WSL process
 _searx_process = None
 
 
 def is_searxng_running():
     """
-    Verifica se SearXNG risponde sulla porta 8888.
+    Checks if SearXNG is responding on port 8888.
     """
     try:
         response = requests.get(
@@ -24,14 +24,14 @@ def is_searxng_running():
 
 def start_searxng():
     """
-    Avvia SearXNG dentro WSL in background.
-    Se è già attivo non fa nulla.
+    Starts SearXNG inside WSL in the background.
+    If it is already running, it does nothing.
     """
 
     global _searx_process
 
     if is_searxng_running():
-        print("[SEARXNG] Già attivo.")
+        print("[SEARXNG] Already running.")
         return
 
     comando_linux = (
@@ -51,7 +51,7 @@ def start_searxng():
     ]
 
     try:
-        print("[SEARXNG] Avvio in corso...")
+        print("[SEARXNG] Starting...")
 
         _searx_process = subprocess.Popen(
             comando_wsl,
@@ -64,26 +64,26 @@ def start_searxng():
         # piccolo tempo per permettere al server di inizializzarsi
         for _ in range(20):
             if is_searxng_running():
-                print("[SEARXNG] Avviato.")
+                print("[SEARXNG] Started.")
                 return
 
             time.sleep(0.5)
 
-        print("[SEARXNG] Avvio richiesto, ma non ancora raggiungibile.")
+        print("[SEARXNG] Start requested, but not yet reachable.")
 
     except Exception as e:
-        print(f"[SEARXNG] Errore avvio: {e}")
+        print(f"[SEARXNG] Start error: {e}")
 
 
 def stop_searxng():
     """
-    Arresta SearXNG.
+    Stops SearXNG.
     """
 
     global _searx_process
 
     try:
-        print("[SEARXNG] Arresto in corso...")
+        print("[SEARXNG] Stop in progress...")
 
         comando_linux = "pkill -f 'python searx/webapp.py'"
 
@@ -105,7 +105,7 @@ def stop_searxng():
 
         _searx_process = None
 
-        print("[SEARXNG] Arrestato.")
+        print("[SEARXNG] Stopped.")
 
     except Exception as e:
-        print(f"[SEARXNG] Errore arresto: {e}")
+        print(f"[SEARXNG] Stop error: {e}")

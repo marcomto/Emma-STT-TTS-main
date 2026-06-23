@@ -3,13 +3,13 @@ import pyaudio
 from piper import PiperVoice
 
 class TTS:
-    # Passa l'istanza 'pa' al costruttore
+    # Pass the 'pa' instance to the constructor
     def __init__(self, model_path, pa_instance):
         self.voice = PiperVoice.load(model_path)
         print("Piper sample rate:", self.voice.config.sample_rate)
         self.stop_event = threading.Event()
         
-        # Usa l'istanza condivisa passata come argomento
+        # Use the shared instance passed as an argument
         self.pa = pa_instance 
         self.stream = self.pa.open(
             format=pyaudio.paInt16,
@@ -50,20 +50,20 @@ class TTS:
 
 
     def start(self, text):
-        """Avvia la riproduzione in un thread separato."""
-        self.stop() # Ferma eventuale audio precedente
+        """Starts the playback in a separate thread."""
+        self.stop() # Stop any previous audio
         self.stop_event.clear()
         self.thread = threading.Thread(target=self._play_loop, args=(text,), daemon=True)
         self.thread.start()
 
     def stop(self):
-        """Interrompe immediatamente l'audio."""
+        """Stops the audio immediately."""
         self.stop_event.set()
         if self.thread and self.thread.is_alive():
-            self.thread.join() # Attende la chiusura pulita del thread
+            self.thread.join() # Waits for the thread to close cleanly
 
     def is_speaking(self):
-        """Verifica se il thread sta ancora riproducendo."""
+        """Verifies if the thread is still playing."""
         return self.thread is not None and self.thread.is_alive()
 
     def close(self):
@@ -71,7 +71,7 @@ class TTS:
             self.stop()
             self.stream.stop_stream()
             self.stream.close()
-            # NOTA: Non chiamare self.pa.terminate() qui se è condivisa, 
-            # altrimenti chiuderai l'audio anche per il microfono.
+            # Don't call self.pa.terminate() here if it's shared,
+            # otherwise you'll mute the microphone as well.
         except Exception:
             pass

@@ -1,6 +1,6 @@
 """
-Ollama client module - API HTTP per interazioni con Ollama.
-Indipendente da thread e risorse audio condivise.
+Ollama client module - HTTP API for interactions with Ollama.
+Thread-independent and shared audio resources.
 """
 import json
 import time
@@ -13,11 +13,11 @@ import ollama
 
 def call_ollama(session, history):
     """
-    Esegue una chiamata HTTP a Ollama /api/chat con gestione robusta degli errori.
+    Makes an HTTP call to Ollama /api/chat with robust error handling.
     
     Args:
         session: requests.Session instance
-        history: list di messaggi per il chat
+        history: message list for chat
     
     Returns:
         dict con {"role": "assistant", "content": str}
@@ -76,14 +76,14 @@ def call_ollama(session, history):
 
 def embed_text(session, text):
     """
-    Genera embedding per un testo usando Ollama.
+    Generate embeddings for text using Ollama.
     
     Args:
         session: requests.Session instance
-        text: str testo da embedizzare
+        text: str text to embed
     
     Returns:
-        list di float (embedding vector) o []
+        float list (embedding vector) or []
     """
     url = "http://127.0.0.1:11434/api/embeddings"
     payload = {"model": EMBED_MODEL, "prompt": text}
@@ -104,14 +104,14 @@ def embed_text(session, text):
 
 def web_search(session, query):
     """
-    Esegue ricerca web usando Ollama e sintetizza risultati.
+    Performs web searches using Ollama and summarizes results.
     
     Args:
         session: requests.Session instance
-        query: str query di ricerca
+        query: str query string
     
     Returns:
-        str risposta sintetizzata
+        str summarized response
     """
     # API_KEY = os.getenv("OLLAMA_WEB_SEARCH_KEY")
 
@@ -143,13 +143,13 @@ def web_search(session, query):
     r.raise_for_status()
     data = r.json()
 
-    # 2) prepara contesto
+    # 2) prepare context
     context = "\n\n".join(
         f"{x['title']}\n{x['content'][:1500]}"
         for x in data.get("results", [])[:MAX_RESULTS]
     )
 
-    # 3) Qwen3 sintetizza
+    # 3) Llama summarizes
     response = ollama.chat(
         model=LIBRARY,
         messages=[

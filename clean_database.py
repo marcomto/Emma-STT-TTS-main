@@ -30,7 +30,7 @@ def prune_old_vectors(session_id, db_path):
                     )
                 """, (session_id, excess))
                 conn.commit()
-                print(f"Cancellati {excess} record dalla tabella memory_vectors con session_id= {session_id}")
+                print(f"Deleted {excess} records from memory_vectors table with session_id= {session_id}")
     except Exception as e:
         print(f"Error pruning old vectors for session {session_id}: {e}")
 
@@ -60,7 +60,7 @@ def prune_summaries(session_id, db_path):
                     )
                 """, (session_id, excess))
                 conn.commit()
-                print(f"Cancellati {excess} record dalla tabella summaries con session_id= {session_id}")
+                print(f"Deleted {excess} records from summaries table with session_id= {session_id}")
     except Exception as e:
         print(f"Error pruning summaries for session {session_id}: {e}")        
 

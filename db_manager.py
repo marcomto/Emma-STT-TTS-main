@@ -3,35 +3,35 @@ import sqlite3
 import threading
 from load_config import cfg
 
-# === CONFIGURAZIONE ===
+# === DB CONFIGURATION ===
 DB_PATH = cfg["database"]
 
-# Ogni thread ha la propria connessione (isolamento sicuro)
+# Each thread has its own connection (safe isolation)
 _thread_local = threading.local()
 
 
 def _init_connection(conn: sqlite3.Connection):
     """
-    Inizializza una connessione SQLite con impostazioni ottimizzate.
-    Eseguito solo una volta per ogni thread.
+    Initializes a SQLite connection with optimized settings.
+    Executed only once per thread.
     """
-    conn.row_factory = sqlite3.Row  # accesso ai risultati per nome colonna
+    conn.row_factory = sqlite3.Row  # access results by column name
 
     cursor = conn.cursor()
-    # 🔧 Ottimizzazioni di performance
-    cursor.execute("PRAGMA journal_mode=WAL;")        # abilita scrittura parallela
-    cursor.execute("PRAGMA synchronous = NORMAL;")    # velocizza commit
-    cursor.execute("PRAGMA temp_store = MEMORY;")     # usa RAM per operazioni temporanee
+    # 🔧 Performance optimizations
+    cursor.execute("PRAGMA journal_mode=WAL;")        # enable parallel writing
+    cursor.execute("PRAGMA synchronous = NORMAL;")    # speed up commit
+    cursor.execute("PRAGMA temp_store = MEMORY;")     # use RAM for temporary operations
     cursor.execute("PRAGMA cache_size = -64000;")     # ~64MB cache in RAM
-    cursor.execute("PRAGMA mmap_size = 268435456;")   # usa mappa memoria (256MB)
+    cursor.execute("PRAGMA mmap_size = 268435456;")   # use memory map (256MB)
     cursor.close()
     return conn
 
 
 def get_connection():
     """
-    Restituisce una connessione SQLite dedicata al thread corrente.
-    Se non esiste, ne crea una nuova ottimizzata.
+    Returns a SQLite connection dedicated to the current thread.
+    If it doesn't exist, it creates a new, optimized one.
     """
     if not hasattr(_thread_local, "conn") or _thread_local.conn is None:
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -41,8 +41,8 @@ def get_connection():
 
 def ensure_connection():
     """
-    Verifica che la connessione corrente sia attiva.
-    Se è chiusa o corrotta, la ricrea automaticamente.
+    Verifies that the current connection is active.
+    If it is closed or corrupted, it recreates it automatically.
     """
     try:
         conn, cursor = get_connection()
@@ -55,7 +55,7 @@ def ensure_connection():
 
 
 def commit():
-    """Esegue commit sulla connessione del thread corrente."""
+    """Executes commit on the current thread's connection."""
     if hasattr(_thread_local, "conn") and _thread_local.conn:
         try:
             _thread_local.conn.commit()
@@ -66,7 +66,7 @@ def commit():
 
 
 def close_connection():
-    """Chiude in modo sicuro la connessione del thread corrente."""
+    """Closes the connection for the current thread safely."""
     if hasattr(_thread_local, "conn") and _thread_local.conn:
         try:
             _thread_local.conn.close()
@@ -78,7 +78,7 @@ def close_connection():
 
 def close_all_connections():
     """
-    Chiusura pulita di tutte le connessioni thread-local (solo se necessario allo shutdown).
+    Closes all thread-local connections cleanly (only if necessary for shutdown).
     """
     active_threads = threading.enumerate()
     for t in active_threads:

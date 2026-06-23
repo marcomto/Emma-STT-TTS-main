@@ -30,7 +30,7 @@ def remove_emojis(text: str) -> str:
     return emoji_pattern.sub("", text)
     
 def truncate(text: str, limit: int = 500) -> str:
-    """Tronca il testo se è troppo lungo, aggiungendo '...' alla fine."""
+    """Truncate text if it is too long by adding '...' to the end."""
     return text[:limit] + "..." if len(text) > limit else text
     
 # Console colors
