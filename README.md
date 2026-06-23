@@ -1,6 +1,6 @@
 # 🚀 Emma - Bilingual Voice Personal Assistant
 
-Emma is a voice-driven personal assistant that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can execute keyboard inputs and perform web searches via voice commands. Web searches can be handled either through Ollama web search or by integrating a local search engine like SearX.
+Emma is a voice-driven personal assistant that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can also execute keyboard inputs to write and perform web searches. Web searches can be handled either through Ollama web search (with a valid API Key) or by integrating a local search engine like SearX.
 
 
 ---
@@ -11,7 +11,7 @@ Before you begin, ensure you have met the following requirements:
 * **A microphone**
 * **Python** (version = 3.13.7)
 * **Ollama** (with llama3.1:8b installed)
-* **Piper** (with piper voices, default is C:\piper, C:\piper\voices with valid *.onnx e *.json voice files. See the configuration files in config folder for the languaged used)
+* **Piper** (with piper voices, default is C:\piper, C:\piper\voices with valid *.onnx e *.json voice files. See the configuration files in config folder for the languages used)
 * **SearX** installed on your local machine (if you want the web search)
 
 ## 📦 Installation
@@ -37,7 +37,7 @@ To run the application in development mode, execute the following command:
 
 ```bash
 python main.py or python main.py --lang it (for italian)
-python main.py --lang en (for englih)
+python main.py --lang en (for english)
 
 note: you can create your own languages by creating a new config/config_xx.json
 ```
@@ -46,7 +46,7 @@ voice commands:
 hello (activation word)
 command exit (exits the program)
 command type (write on keyboard insted of speaking)
-command search (search phrase on keyboard instead of speaking)
+command search (search the web **only by keyboard**)
 
 
 ---
@@ -77,5 +77,5 @@ For more details, please see the full license at https://opensource.org/license/
 
 ## 👤 Author
 
-* **Marco Mazzetto** - [marcomto@github.com]
+* **Marco Mazzetto** - [marcomto]
 * Email: marcomto.mm@gmail.com
