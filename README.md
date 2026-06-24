@@ -11,6 +11,7 @@ Before you begin, ensure you have met the following requirements:
 * **A microphone**
 * **Python** (version = 3.13.7)
 * **Ollama** (with llama3.1:8b installed)
+* **nomic-embed-text** (llm che fa l'embedding dei messaggi, installa con: ollama run nomic-embed-text)
 * **Piper** (with piper voices, default is C:\piper, C:\piper\voices with valid *.onnx e *.json voice files. See the configuration files in config folder for the languages used)
 * **SearX** installed on your local machine (if you want the web search)
 
