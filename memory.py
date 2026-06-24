@@ -130,7 +130,22 @@ def build_context(session_id, query=None, embed_text_func=None, vector_cache=Non
         return len(text.split())
 
     # 0) Fixed identities (always present) - keep but limit them
-    identity_message = f"{cfg.get('identity_llm', 'Important note: I am Emma-Zira')}{cfg.get('identity_user', 'You are Marco.')}"
+    # identity_message = f"{cfg.get('identity_llm', 'Important note: I am Emma-Zira')}{cfg.get('identity_user', 'You are Marco.')}"
+    identity_message = f"""
+    [ASSISTANT IDENTITY]
+    {cfg.get('identity_llm', 'You are Emma-Zira, Marco''s personal voice assistant.')}
+
+    [USER IDENTITY]
+    {cfg.get('identity_user', 'The user you are interacting with is Marco.')}
+
+    [BEHAVIOR RULES]
+    {cfg.get('formatting_rules', 'Respond naturally as a voice assistant...')}
+
+    [RESPONSE STYLE]
+    {cfg.get('behavior_rules', 'Never make up personal information, appointments...')}
+    """    
+
+
     identity_message = truncate(identity_message, limit=1000)
     messages.append({"role": "system", "content": identity_message})
 
