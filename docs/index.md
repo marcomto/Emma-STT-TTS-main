@@ -3,6 +3,8 @@ Introduction
 
 I apologize to anyone interested in this program, and I apologize in advance. Between work and personal commitments, I have little time to write a comprehensive guide on how the code works, but I think that today, thanks to AI, we can have complete information on how a loop, thread, or queue works in this program. However, I feel it's important to include the configurations that can make life easier for anyone who uses or wants to work with this code. The README.md file explains how to install the program, how to start it, and how to issue voice commands.
 
+The project initially started with vosk recognition and pyttsx3 synthesis, but then I switched to faster-whispher and piper. Vosk didn't recognize English spoken by non-native speakers well, and pyttsx3 had a bug that prevented synthesis unless the voice instance was created and destroyed at each conversation turn. Furthermore, synthesis with pyttsx3 was tied to the operating system, and the available voices were Elsa for Italian and Zira for English. This is where the name Emma comes from, although it was slightly changed because the AI ​​model tended to impersonate it.
+
 Configuration
 ==============
 
@@ -11,7 +13,7 @@ LANGUAGES
 
 The config folder contains respectively **config_en.json** and **config_it.json**. These are the English and Italian language files. If you want to create another language, you'll need to create another JSON file, e.g., config_es.json for Spanish. This file contains language settings, such as:    
 - "user_lang", language used by Faster-Whispher  
-- "search_lang", language used by searx fro web searching
+- "search_lang", language used by searxng fro web searching
 - "piper_model", "C:\\Piper\\voices\\en_US-amy-medium.onnx", put here the path to the new voice files
 
 The TTS will need the new languages. That is, the C:\Piper folder with the voices subfolder containing the .onnx and .json files.
@@ -27,11 +29,12 @@ If you add a language, you must also put it here.
 
 The application can then be run with python main.py --lang xx, where xx is your language
 
+You can find the piper voice files here: [Piper](https://rhasspy.github.io/piper-samples/)
 
 WEB SEARCH
 -----------
 
-The web_search(session, query) function in the ollama_client.py file currently uses searx web search:
+The web_search(session, query) function in the ollama_client.py file currently uses searxng web search:
 
     r = session.post(
         "http://localhost:8888/search",
@@ -69,19 +72,67 @@ Your API key must be placed in the secret.env file at the root of your project a
 
 where xxxxxxxxxx is your own api key
 
-In main.py when the application is launched, searx is also started. To disable it, remove the following functions from main.py:
+In main.py, when the application is launched, searxng is also started. To disable it, set the SEARX_ENABLE = False in the constants.py file.
+This disables the search engine from starting (and the voice command as well), if you don't want to use it or if you want to use ollama web search.
 
-	start_searxng()
+**IMPORTANT:** if you intend to use the ollama web search SEARX_ENABLE = False is compulsory, otherwise il will try to start-up the engine when the application is run.
+**IMPORTANT:** up to now I use windows and search is installed in the WSL environment under Windows, as such searxng is started like this:
 
-and the following block
+        "cd ~/searxng && "
+        "source .venv/bin/activate && "
+        "python searx/webapp.py --port 8888 --bind 0.0.0.0"
 
-    try:
-        # closes SearXNG
-        stop_searxng()
-    except Exception:
-        pass
+If you intend to to run searxng by other means (docker for example), the above code is not good for you. Basically you can install searxng the way you prefer and create your own searx_manager.py
+I am not providing any support using searxng, but I will share my settings.yml in order to make it work with my we search function:
 
-This disables the search engine from starting, if you don't want to use it or if you want to use ollama web search.
+    search:
+    # Filter results. 0: None, 1: Moderate, 2: Strict
+    safe_search: 0
+    # Existing autocomplete backends: "360search", "baidu", "bing", "brave", "dbpedia", "duckduckgo", "google",
+    # "yandex", "privacywall", "mwmbl", "naver", "seznam", "sogou", "startpage", "swisscows", "quark", "qwant",
+    # "wikipedia" - leave blank to turn it off by default.
+    autocomplete: "google"
+    # minimun characters to type before autocompleter starts
+    autocomplete_min: 4
+    # backend for the favicon near URL in search results.
+    # Available resolvers: "allesedv", "duckduckgo", "google", "yandex" - leave blank to turn it off by default.
+    favicon_resolver: ""
+    # Default search language - leave blank to detect from browser information or
+    # use codes from 'languages.py'
+    default_lang: "auto"
+    # max_page: 0  # if engine supports paging, 0 means unlimited numbers of pages
+    # Available languages
+    languages:
+    #   - all
+    #   - en
+        - en-US
+    #   - de
+        - it-IT
+
+    engines:
+
+    - name: bing
+        engine: bing
+        shortcut: bi
+        categories: general
+        disabled: true
+
+    - name: google
+        engine: google
+        shortcut: go
+        categories: general
+        disabled: true
+
+    - name: duckduckgo
+        engine: duckduckgo
+        shortcut: dd
+        categories: general
+        disabled: false
+
+Please note the languages section: I enabled italiand annd english for my application. This will perfor searching in both languages. 
+Please note the engines: section: google does not allow web scraping and genrated captchas to avoid it. I disabled it. Same goes for Bing, it does not allow scraping and the results you get are weird. I only use duckduckgo to search the web, your mileage may vary.
+
+You can find more information about searxng here: [searxng](https://github.com/searxng/searxng)
 
 CONSTANTS.PY
 ------------
@@ -308,3 +359,4 @@ If you don't want/can't use CUDA, you can also use the CPU:
         device="cpu",
         compute_type="float16"
     )
+

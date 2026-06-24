@@ -1,6 +1,6 @@
 # 🚀 Emma - Bilingual Voice Personal Assistant
 
-Emma is a voice-driven personal assistant that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can also execute keyboard inputs to write and perform web searches. Web searches can be handled either through Ollama web search (with a valid API Key) or by integrating a local search engine like SearX.
+Emma is a voice-driven personal assistant that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can also execute keyboard inputs to write and perform web searches. Web searches can be handled either through Ollama web search (with a valid API Key) or by integrating a local search engine like searxng.
 
 
 ---
@@ -13,7 +13,7 @@ Before you begin, ensure you have met the following requirements:
 * **Ollama** (with llama3.1:8b installed)
 * **nomic-embed-text** (llm che fa l'embedding dei messaggi, installa con: ollama run nomic-embed-text)
 * **Piper** (with piper voices, default is C:\piper, C:\piper\voices with valid *.onnx e *.json voice files. See the configuration files in config folder for the languages used)
-* **SearX** installed on your local machine (if you want the web search)
+* **searxng** installed on your local machine (if you want the web search)
 
 ## 📦 Installation
 
@@ -33,6 +33,8 @@ Follow these steps to set up the development environment locally:
    ```
 
 ## 💻 Usage
+
+**First of all, read the configuration document here: docs/index.md**
 
 To run the application in development mode, execute the following command:
 
