@@ -6,3 +6,4 @@ SUMMARY_LIMIT = 50        # when > this, summarize older part
 VOICE_THRESHOLD = 400
 MAX_FRAMES = 120
 MAX_RESULTS = 5 # web search results
+SEARX_ENABLE = False  # Set to True to enable SearXNG web search functionality

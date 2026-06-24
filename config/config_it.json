@@ -55,5 +55,6 @@
   "start_word_err": "Avvertimento: impossibile connettere started-word",
   "esc_pressed": "Voce interrotta manualmente (ESC premuto).",
   "start_err": "Errore in start()",
-  "search_lang": "it-IT"   
+  "search_lang": "it-IT",
+  "web_search_disabled": "La ricerca Web è disabilitata."    
 }

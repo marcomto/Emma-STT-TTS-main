@@ -6,7 +6,7 @@ import time
 import sqlite3
 import numpy as np
 import atexit
-from constants import LIBRARY, MAX_FRAMES, SESSION_ID, SILENCE_THRESHOLD, SUMMARY_LIMIT, VOICE_THRESHOLD
+from constants import LIBRARY, MAX_FRAMES, SEARX_ENABLE, SESSION_ID, SILENCE_THRESHOLD, SUMMARY_LIMIT, VOICE_THRESHOLD
 from engine import TTS
 import db_manager
 from db_manager import ensure_connection, commit, close_all_connections
@@ -236,8 +236,9 @@ def cleanup():
         pass
 
     try:
-        # closes SearXNG
-        stop_searxng()
+        # closes SearXNG if enabled in constants.py
+        if SEARX_ENABLE:
+            stop_searxng()
     except Exception:
         pass
 
@@ -366,6 +367,11 @@ def runCommands(cmd, text):
             SpeakText(assistant_text, show_prompt=True)
         
     elif cmd == cfg.get("commands")[2]:
+        if not SEARX_ENABLE:
+            print(f"{Colors.ASSISTANT}Assistant: {cfg.get("web_search_disabled", "Web search is disabled.")}{Colors.RESET}")
+            SpeakText(f"{cfg.get("web_search_disabled", "Web search is disabled.")}", show_prompt=True)
+            return
+        
         print(f"{Colors.ASSISTANT}Assistant: {cfg.get("keyb_search_msg", "Okay, you can search from the keyboard.")}{Colors.RESET}")
         SpeakText(f"{cfg.get("keyb_search_msg", "Okay, you can search from the keyboard.")}", show_prompt=False)
         
@@ -569,8 +575,9 @@ if __name__ == "__main__":
     threading.Thread(target=memory_worker, daemon=True).start()
     
     try:
-        #avvio di SearXNG
-        start_searxng()
+        #starts SearXNG if enabled in constants.py
+        if SEARX_ENABLE:
+            start_searxng()
 
         assistant_loop()
     except KeyboardInterrupt:
