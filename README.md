@@ -1,6 +1,6 @@
-# 🚀 Emma - Bilingual Voice Personal Assistant
+# 🚀 Emma - Bilingual AI Agent with RAG
 
-Emma is a voice-driven personal assistant that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can also execute keyboard inputs to write and perform web searches. Web searches can be handled either through Ollama web search (with a valid API Key) or by integrating a local search engine like searxng.
+Emma is a voice-driven AI Agent with RAG that utilizes **Faster-Whisper** for speech recognition and **Piper** for text-to-speech. Powered by **Llama 3.1 (8B)** and an **SQLite** database, Emma can also execute keyboard inputs to write and perform web searches. Web searches can be handled either through Ollama web search (with a valid API Key) or by integrating a local search engine like searxng.
 
 
 ---
