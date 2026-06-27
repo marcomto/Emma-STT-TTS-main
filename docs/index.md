@@ -352,6 +352,8 @@ FASTER WHISPHER AND CUDA
 The program uses Faster Whispher for audio capture, which takes advantage of the GPU rather than the CPU. CUDA must be installed on the system, and its DLLs must be recognized. I had trouble using CUDA at first, and I solved it by declaring the libraries in the Windows system path:
 - C:\Users\\[your_user]\AppData\Local\Programs\Python\Python313\Lib\site-packages\nvidia\cublas\bin
 
+but then I moved the configuration to CUDA_PATH in contants.py, so you don't need to add a system variable anymore
+
 If you don't want/can't use CUDA, you can also use the CPU:
 
     whisper_model = WhisperModel(

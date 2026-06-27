@@ -1,3 +1,17 @@
+import os
+from constants import LIBRARY, MAX_FRAMES, SEARX_ENABLE, SESSION_ID, SILENCE_THRESHOLD, SUMMARY_LIMIT, VOICE_THRESHOLD, CUDA_PATH
+nvidia_path = CUDA_PATH
+print(f"[INFO] Using CUDA path: {nvidia_path}")
+
+cuda_paths = [
+    os.path.join(nvidia_path, "cublas", "bin"),
+    os.path.join(nvidia_path, "cuda_runtime", "bin"),
+    os.path.join(nvidia_path, "cudnn", "bin"),
+]
+
+os.environ["PATH"] = ";".join(cuda_paths) + ";" + os.environ["PATH"]
+from faster_whisper import WhisperModel
+
 import requests
 from random import randrange
 import pyaudio
@@ -6,16 +20,17 @@ import time
 import sqlite3
 import numpy as np
 import atexit
-from constants import LIBRARY, MAX_FRAMES, SEARX_ENABLE, SESSION_ID, SILENCE_THRESHOLD, SUMMARY_LIMIT, VOICE_THRESHOLD
+
 from engine import TTS
 import db_manager
 from db_manager import ensure_connection, commit, close_all_connections
 from queue import Queue, Empty
-from faster_whisper import WhisperModel
+
 from utils import clean_markdown, remove_emojis, truncate, adaptive_memory_tuning
 from utils import Colors
 import audioop
 import keyboard
+
 from settings import runtime
 from load_config import cfg
 

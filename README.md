@@ -42,9 +42,10 @@ To run the application in development mode, execute the following command:
 python main.py or python main.py --lang it (for italian)
 python main.py --lang en (for english)
 
-note: you can create your own languages by creating a new config/config_xx.json
-in case you get a cuda dll error add a variable to path like this:
-C:\Users\[your_user]\AppData\Local\Programs\Python\Python313\Lib\site-packages\nvidia\cublas\bin
+important: in constants.py you need to configure cuda dlls like this:
+CUDA_PATH = C:\Users\[your_user]\AppData\Local\Programs\Python\Python313\Lib\site-packages\nvidia\cublas\bin
+
+or you will get: [ERROR] Library cublas64_12.dll is not found or cannot be loaded
 ```
 voice commands in English:
 ```
