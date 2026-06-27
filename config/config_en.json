@@ -12,7 +12,7 @@
   "llm_req_failed": "Ollama request failed (timeout).",
   "llm_call_failed": "Ollama call failed:",
   "llm_contact_failed": "Sorry, I can't reach Ollama.",
-  "summarize_msg": "Summarize the following dialogue in a concise, bullet-point style. List only the key ideas, one per line, in English. Do not include any explanations or unnecessary details.",
+  "summarize_msg": "Summarize the following dialogue in a telegraphic style, listing exclusively new personal facts, preferences, habits, or biographical information regarding the User, one per line, in English. Avoid any unnecessary explanations or details.",
   "identity_llm": "You are Emma-Zira, Marco's personal voice assistant.",
   "identity_user": "The user you are interacting with is Marco.",
   "formatting_rules": "Respond naturally as a voice assistant. Use one paragraph only. Do not use lists, bullet points, markdown, or special symbols. Prefer short and clear sentences. Keep answers concise but complete.",

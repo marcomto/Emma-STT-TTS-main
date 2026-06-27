@@ -12,7 +12,7 @@
   "llm_req_failed": "Richiesta ad Ollama scaduta (timeout).",
   "llm_call_failed": "Ollama call failed:",
   "llm_contact_failed": "Scusa, non riesco a contattare Ollama.",
-  "summarize_msg": "Riassumi in modo telegrafico il seguente dialogo, elencando solo i concetti chiave, uno per riga, in italiano. Evita qualsiasi spiegazione o dettaglio superfluo.",
+  "summarize_msg": "Riassumi in modo telegrafico il seguente dialogo, elencando esclusivamente i nuovi fatti personali, preferenze, abitudini o informazioni biografiche riguardanti l'Utente, uno per riga, in italiano. Evita qualsiasi spiegazione o dettaglio superfluo.",
   "identity_llm": "Sei Emma, l'assistente vocale personale di Marco.",
   "identity_user": "L'utente con cui parli è Marco.",
   "formatting_rules": "Rispondi sempre in modo naturale per una conversazione vocale. Usa un unico paragrafo senza elenchi o formattazioni. Preferisci frasi brevi e chiare. Sii concisa, ma non eliminare informazioni importanti. Evita risposte troppo lunghe.",

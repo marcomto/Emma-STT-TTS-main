@@ -296,7 +296,24 @@ def summarizer_worker(interval_sec=30):
                     chunk_summaries = []
                     for i in range(0, len(to_summarize), chunk_size):
                         chunk = to_summarize[i:i+chunk_size]
-                        text_block = "\n".join(f"{r}: {c}" for (_id, r, c) in chunk)
+                        # text_block = "\n".join(f"{r}: {c}" for (_id, r, c) in chunk)
+                        filtered_chunk = [
+                            (role, content)
+                            for (_id, role, content) in chunk
+                            if not (
+                                content.startswith("[WEB SEARCH]") or
+                                content.startswith("[WEB SUMMARY]")
+                            )
+                        ]
+
+                        # Se il chunk contiene solo messaggi web, passa al successivo
+                        if not filtered_chunk:
+                            continue
+
+                        text_block = "\n".join(
+                            f"{role}: {content}"
+                            for role, content in filtered_chunk
+                        )
 
                         payload = {
                             "model": LIBRARY,
@@ -395,7 +412,8 @@ def runCommands(cmd, text):
         if user_text:
             # Save web request 
             add_message("user", "[WEB SEARCH] " + user_text, SESSION_ID)            
-            FACT_QUEUE.put(("user", "[WEB SEARCH] " + user_text, SESSION_ID)) 
+            # Prevents web searches from ending up in memory cache
+            # FACT_QUEUE.put(("user", "[WEB SEARCH] " + user_text, SESSION_ID)) 
 
             assistant_text = web_search(user_text)    
 
@@ -405,7 +423,8 @@ def runCommands(cmd, text):
                 web_summary = truncate(assistant_text, 350)
                 
                 add_message("assistant", "[WEB SUMMARY] " + web_summary, SESSION_ID)
-                FACT_QUEUE.put(("assistant", "[WEB SUMMARY] " + web_summary, SESSION_ID)) 
+                # Prevents web searches from ending up in memory cache
+                #FACT_QUEUE.put(("assistant", "[WEB SUMMARY] " + web_summary, SESSION_ID)) 
                 
                 print(f"{Colors.ASSISTANT}Assistant: {assistant_text}{Colors.RESET}")
                 SpeakText(assistant_text, show_prompt=True)
